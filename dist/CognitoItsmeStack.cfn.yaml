@@ -1,0 +1,138 @@
+Parameters:
+  uniquePrefix:
+    Type: String
+    Description: Prefix for the Amazon Cognito Domain
+  itsmeClientId:
+    Type: String
+    Description: ClientID provided by ITSME
+  itsmeClientSecret:
+    Type: String
+    Description: Client Secret provided by ITSME
+  itsmeIssuerURL:
+    Type: String
+    Default: https://oidc.e2e.itsme.services/clientsecret-oidc/csapi/v0.1
+    Description: "Issuer URL provided by ITSME. Default: Sandbox(e2e) issuer"
+  callBackClientURLs:
+    Type: String
+    Default: http://localhost:3000
+    Description: Client CallBack URLs
+  itsmeService:
+    Type: String
+    Default: COGNITOSBX_LOGIN
+    Description: Service value Provided by Itsme
+Resources:
+  UserPool6BA7E5F2:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: verified_phone_number
+            Priority: 1
+          - Name: verified_email
+            Priority: 2
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
+      EmailVerificationMessage: The verification code to your new account is {####}
+      EmailVerificationSubject: Verify your new account
+      Schema:
+        - AttributeDataType: String
+          Mutable: true
+          Name: eid
+          StringAttributeConstraints:
+            MaxLength: "255"
+            MinLength: "1"
+      SmsVerificationMessage: The verification code to your new account is {####}
+      UserPoolName: itsmeUserPool
+      VerificationMessageTemplate:
+        DefaultEmailOption: CONFIRM_WITH_CODE
+        EmailMessage: The verification code to your new account is {####}
+        EmailSubject: Verify your new account
+        SmsMessage: The verification code to your new account is {####}
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+  UserPooldefaultEC7E3EE2:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain:
+        Ref: uniquePrefix
+      UserPoolId:
+        Ref: UserPool6BA7E5F2
+  itsmeDA706BD8:
+    Type: AWS::Cognito::UserPoolIdentityProvider
+    Properties:
+      ProviderName: itsme
+      ProviderType: OIDC
+      UserPoolId:
+        Ref: UserPool6BA7E5F2
+      AttributeMapping:
+        email: email
+        birthdate: birthdate
+        gender: gender
+        family_name: family_name
+        given_name: given_name
+        name: name
+        locale: locale
+        phone_number: phone_number
+        preferred_username: name
+        address: address
+        custom:eid: http://itsme.services/v2/claim/BENationalNumber
+      ProviderDetails:
+        client_id:
+          Ref: itsmeClientId
+        client_secret:
+          Ref: itsmeClientSecret
+        authorize_scopes:
+          Fn::Join:
+            - ""
+            - - "service:"
+              - Ref: itsmeService
+              - " email openid profile eid address"
+        attributes_request_method: GET
+        oidc_issuer:
+          Ref: itsmeIssuerURL
+  userPoolClientB67490F4:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId:
+        Ref: UserPool6BA7E5F2
+      AllowedOAuthFlows:
+        - code
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthScopes:
+        - profile
+        - phone
+        - email
+        - openid
+        - aws.cognito.signin.user.admin
+      CallbackURLs:
+        - Ref: callBackClientURLs
+      ClientName: itsme-client
+      GenerateSecret: false
+      LogoutURLs:
+        - Ref: callBackClientURLs
+      SupportedIdentityProviders:
+        - itsme
+    DependsOn:
+      - itsmeDA706BD8
+Outputs:
+  UserPoolArn:
+    Value:
+      Fn::GetAtt:
+        - UserPool6BA7E5F2
+        - Arn
+  UserPoolId:
+    Value:
+      Ref: UserPool6BA7E5F2
+  UserPoolWebClientId:
+    Value:
+      Ref: userPoolClientB67490F4
+  Domain:
+    Value:
+      Fn::Join:
+        - ""
+        - - https://
+          - Ref: UserPooldefaultEC7E3EE2
+          - .auth.
+          - Ref: AWS::Region
+          - .amazoncognito.com
+
