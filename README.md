@@ -96,7 +96,7 @@ With the aws-cli : ```aws --region <region> cloudformation delete-stack --stack-
     1. region : With the region associated with your Amazon Cognito user pool.
     2. userPoolId : With the assigned Id of the user pool that you created.
     3. userPoolWebClientId : With the client Id that you retrieved.
-    4. domain : With your Amazon Cognito domain in the form of : https://< your user pool name >.auth.< your region >.amazoncognito.com.
+    4. domain : With your Amazon Cognito domain in the form of : < your user pool name >.auth.< your region >.amazoncognito.com.
 
 
 
