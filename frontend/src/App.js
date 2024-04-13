@@ -3,7 +3,7 @@ import React, { useState, useEffect, Fragment } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Navbar, Button } from "react-bootstrap";
 import Nav from "react-bootstrap/Nav";
-import { Auth, API, Amplify } from 'aws-amplify'
+import { Auth, Amplify } from 'aws-amplify'
 import '@aws-amplify/ui-react/styles.css';
 import Container from "react-bootstrap/Container";
 import { Routes , Route, Navigate} from "react-router-dom";
@@ -12,6 +12,8 @@ import FederatedSignIn from "./components/FederatedSignIn.js";
 import Protected from './components/Protected';
 import Mydata from './components/Mydata';
 import configData from "./config.json";
+
+
 
 
 Amplify.configure({
@@ -29,7 +31,7 @@ Amplify.configure({
 })
 const federatedIdName = "itsme";
 
-API.configure({
+Amplify.configure({
   API: {
     endpoints: [
       {
